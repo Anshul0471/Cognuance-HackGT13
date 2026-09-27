@@ -1,0 +1,106 @@
+# COGNUANCE CI (guide 07 §7). Pull requests use generated throwaway secrets only; nothing here
+# deploys, activates a model, reseeds a hosted database, or needs hosted credentials.
+# NOTE: pin every action to a reviewed commit SHA before enabling this workflow (tags shown for
+# readability until they are reviewed).
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+
+jobs:
+  frontend-static:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
+
+  backend-unit:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "0.11.2" }
+      - run: uv sync --locked --extra ml
+      - run: uv run --extra ml ruff check . && uv run --extra ml ruff format --check .
+      - run: uv run --extra ml pytest -q tests/unit
+
+  backend-integration:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: backend } }
+    services:
+      testdb:
+        image: postgres:17.11
+        env:
+          POSTGRES_DB: cognuance_test
+          POSTGRES_USER: cognuance_test
+          POSTGRES_PASSWORD: ci-disposable-only
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cognuance_test -d cognuance_test"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://cognuance_test:ci-disposable-only@127.0.0.1:55432/cognuance_test
+      # Settings need a dev-style .env to exist; CI writes placeholders pointing at no real database.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "0.11.2" }
+      - run: uv sync --locked --extra ml
+      - name: throwaway backend/.env (no real services)
+        run: |
+          python3 -c "import secrets; print(f'DATABASE_URL=postgresql+psycopg://none:none@127.0.0.1:1/none\nJWT_SECRET={secrets.token_urlsafe(48)}')" > .env
+      - run: uv run --extra ml pytest -q tests/integration
+      - run: uv run --extra ml python -m app.scripts.export_openapi --check
+      - name: alembic check against a migrated disposable database
+        run: DATABASE_URL="$TEST_DATABASE_URL" uv run --extra ml alembic upgrade head && DATABASE_URL="$TEST_DATABASE_URL" uv run --extra ml alembic check
+
+  images:
+    runs-on: ubuntu-24.04
+    needs: [frontend-static, backend-unit]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t cognuance-api:ci-${{ github.sha }} backend/
+      - run: docker build -t cognuance-web:ci-${{ github.sha }} frontend/
+      - run: docker image ls cognuance-*
+
+  browser:
+    # Needs the verified model bundle (git-ignored, ~15 MB). Provide it as a private CI artifact or
+    # cache before enabling; without it this job reports BLOCKED rather than faking a model.
+    if: ${{ vars.E2E_MODEL_BUNDLE_AVAILABLE == 'true' }}
+    runs-on: ubuntu-24.04
+    needs: [backend-integration]
+    services:
+      testdb:
+        image: postgres:17.11
+        env: { POSTGRES_DB: cognuance_test, POSTGRES_USER: cognuance_test, POSTGRES_PASSWORD: ci-disposable-only }
+        ports: ["55432:5432"]
+        options: --health-cmd "pg_isready -U cognuance_test -d cognuance_test" --health-interval 2s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://cognuance_test:ci-disposable-only@127.0.0.1:55432/cognuance_test
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "0.11.2" }
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: cd backend && uv sync --locked --extra ml
+      - run: cd frontend && npm ci && npx playwright install --with-deps chromium
+      - run: cd frontend && npx playwright test --project=chromium
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: e2e-failures, path: frontend/test-results/, retention-days: 3 }

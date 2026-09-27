@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/*
+ * Shared tokens and a few component utilities (refinement 02 §7). Pages keep using Tailwind's
+ * indigo/slate scale; these utilities only remove repeated button/card class strings.
+ * Transitions apply to interactive chrome only — never to timed assessment stimuli.
+ */
+@theme {
+  /* Refinement 03 light theme: calm canvas, navy text, soft borders. Only these slate steps are
+     re-tuned so every existing screen follows; there is deliberately no dark theme. */
+  --color-slate-50: #f6f8fc; /* page background */
+  --color-slate-200: #e3e8f2; /* subtle card/control borders */
+  --color-slate-600: #52627a; /* secondary text (≈6:1 on white) */
+  --color-slate-900: #14213d; /* primary text */
+  --color-brand: var(--color-indigo-600); /* #4f46e5 primary accent */
+  --color-brand-strong: var(--color-indigo-700);
+  --color-brand-soft: var(--color-indigo-50); /* #eef2ff accent surface */
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-indigo-600);
+    outline-offset: 2px;
+  }
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@utility btn-primary {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-base font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none;
+}
+
+@utility btn-secondary {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2 text-base font-semibold text-slate-800 transition-colors duration-150 hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none;
+}
+
+@utility surface-card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgb(20_33_61/0.04)];
+}
+
+@utility skeleton {
+  @apply animate-pulse rounded-md bg-slate-200/80 motion-reduce:animate-none;
+}
+
+/* Chart entrance (refinement 04): series stay hidden only until their entrance animation starts. */
+.chart-entrance-pending
+  :is(.recharts-line, .recharts-bar-rectangles, .recharts-scatter, .recharts-pie, .recharts-reference-dot, [data-entrance]) {
+  opacity: 0;
+}
+
+/* Wide tables/heatmaps scroll inside their own container. Those containers are `relative` so that
+   absolutely positioned descendants (e.g. sr-only text in a 1000 px table) are contained by the
+   scroller instead of widening the whole page on phones (found by the 390 px Playwright check). */

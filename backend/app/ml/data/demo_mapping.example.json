@@ -1,0 +1,9 @@
+{
+  "demo_patients": [
+    {"demo_key": "eleanor", "patient_email": "eleanor.park@demo.test", "scenario": "stable", "history_slots": 8},
+    {"demo_key": "walter", "patient_email": "walter.hughes@demo.test", "scenario": "single_deviation", "history_slots": 8},
+    {"demo_key": "rosa", "patient_email": "rosa.delgado@demo.test", "scenario": "persistent_deviation", "history_slots": 8},
+    {"demo_key": "henry", "patient_email": "henry.lin@demo.test", "scenario": "insufficient_data", "history_slots": 8},
+    {"demo_key": "iris", "patient_email": "iris.novak@demo.test", "scenario": "stable", "history_slots": 7}
+  ]
+}

@@ -1,0 +1,5915 @@
+{
+  "components": {
+    "schemas": {
+      "Actor": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "Actor",
+        "type": "object"
+      },
+      "AlertDetail": {
+        "properties": {
+          "affected_domains": {
+            "items": {
+              "enum": [
+                "memory",
+                "attention",
+                "reaction_time_ms"
+              ],
+              "type": "string"
+            },
+            "title": "Affected Domains",
+            "type": "array"
+          },
+          "alert_id": {
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "assessment": {
+            "$ref": "#/components/schemas/AssessmentDetail"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deviation_level": {
+            "enum": [
+              "REVIEW",
+              "PERSISTENT_DEVIATION",
+              "HIGH_DEVIATION"
+            ],
+            "title": "Deviation Level",
+            "type": "string"
+          },
+          "events_path": {
+            "description": "Paginated review history: GET this path",
+            "title": "Events Path",
+            "type": "string"
+          },
+          "lock_version": {
+            "title": "Lock Version",
+            "type": "integer"
+          },
+          "observed_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "patient_display_name": {
+            "title": "Patient Display Name",
+            "type": "string"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "workflow_status": {
+            "enum": [
+              "OPEN",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "Workflow Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "patient_id",
+          "patient_display_name",
+          "assessment_id",
+          "observed_at",
+          "created_at",
+          "workflow_status",
+          "lock_version",
+          "deviation_level",
+          "affected_domains",
+          "summary",
+          "assessment",
+          "events_path"
+        ],
+        "title": "AlertDetail",
+        "type": "object"
+      },
+      "AlertEventOut": {
+        "properties": {
+          "action": {
+            "enum": [
+              "CREATED",
+              "ACKNOWLEDGED",
+              "NOTE_ADDED",
+              "RESOLVED"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Actor"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null for the system CREATED event"
+          },
+          "created_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "OPEN",
+                  "ACKNOWLEDGED",
+                  "RESOLVED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Status"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "to_status": {
+            "enum": [
+              "OPEN",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "To Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "action",
+          "from_status",
+          "to_status",
+          "note",
+          "actor",
+          "created_at"
+        ],
+        "title": "AlertEventOut",
+        "type": "object"
+      },
+      "AlertEventRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "ACKNOWLEDGED",
+              "NOTE_ADDED",
+              "RESOLVED"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_lock_version": {
+            "minimum": 1.0,
+            "title": "Expected Lock Version",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Plain text. Required (non-empty after trimming) for NOTE_ADDED and RESOLVED",
+            "title": "Note"
+          },
+          "request_key": {
+            "format": "uuid",
+            "title": "Request Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_key",
+          "expected_lock_version",
+          "action",
+          "note"
+        ],
+        "title": "AlertEventRequest",
+        "type": "object"
+      },
+      "AlertEventResponse": {
+        "properties": {
+          "alert": {
+            "$ref": "#/components/schemas/AlertRef",
+            "description": "The alert's *current* workflow status and lock version"
+          },
+          "event": {
+            "$ref": "#/components/schemas/AlertEventOut",
+            "description": "The recorded event (the original one on replay)"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "event",
+          "alert",
+          "replayed"
+        ],
+        "title": "AlertEventResponse",
+        "type": "object"
+      },
+      "AlertListItem": {
+        "properties": {
+          "affected_domains": {
+            "items": {
+              "enum": [
+                "memory",
+                "attention",
+                "reaction_time_ms"
+              ],
+              "type": "string"
+            },
+            "title": "Affected Domains",
+            "type": "array"
+          },
+          "alert_id": {
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deviation_level": {
+            "enum": [
+              "REVIEW",
+              "PERSISTENT_DEVIATION",
+              "HIGH_DEVIATION"
+            ],
+            "title": "Deviation Level",
+            "type": "string"
+          },
+          "lock_version": {
+            "title": "Lock Version",
+            "type": "integer"
+          },
+          "observed_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "patient_display_name": {
+            "title": "Patient Display Name",
+            "type": "string"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "workflow_status": {
+            "enum": [
+              "OPEN",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "Workflow Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "patient_id",
+          "patient_display_name",
+          "assessment_id",
+          "observed_at",
+          "created_at",
+          "workflow_status",
+          "lock_version",
+          "deviation_level",
+          "affected_domains",
+          "summary"
+        ],
+        "title": "AlertListItem",
+        "type": "object"
+      },
+      "AlertRef": {
+        "properties": {
+          "alert_id": {
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "lock_version": {
+            "title": "Lock Version",
+            "type": "integer"
+          },
+          "workflow_status": {
+            "enum": [
+              "OPEN",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "Workflow Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "workflow_status",
+          "lock_version"
+        ],
+        "title": "AlertRef",
+        "type": "object"
+      },
+      "AnalysisDetails": {
+        "properties": {
+          "aggregate_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Method"
+          },
+          "computed_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Computed At"
+          },
+          "domain_deviations": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Per domain: observed, predicted, residual (actual−predicted), worsening, scale, z",
+            "title": "Domain Deviations"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deterministic grounded template explanation",
+            "title": "Explanation"
+          },
+          "high_signal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Signal"
+          },
+          "max_deviation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Deviation"
+          },
+          "model_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Kind"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "moderate_signal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moderate Signal"
+          },
+          "persistent_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Count"
+          },
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version"
+          },
+          "preprocessing_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preprocessing Version"
+          },
+          "streak_evidence_assessment_ids": {
+            "description": "Consecutive earlier assessments whose qualifying analyses form the current streak",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Streak Evidence Assessment Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "computed_at",
+          "aggregate_method",
+          "max_deviation",
+          "moderate_signal",
+          "high_signal",
+          "persistent_count",
+          "streak_evidence_assessment_ids",
+          "domain_deviations",
+          "model_kind",
+          "model_version",
+          "policy_version",
+          "preprocessing_version",
+          "explanation"
+        ],
+        "title": "AnalysisDetails",
+        "type": "object"
+      },
+      "AnswerHelpDeclaration": {
+        "additionalProperties": false,
+        "properties": {
+          "attention": {
+            "enum": [
+              "NONE",
+              "PROVIDED",
+              "UNKNOWN"
+            ],
+            "title": "Attention",
+            "type": "string"
+          },
+          "memory": {
+            "enum": [
+              "NONE",
+              "PROVIDED",
+              "UNKNOWN"
+            ],
+            "title": "Memory",
+            "type": "string"
+          },
+          "reaction": {
+            "enum": [
+              "NONE",
+              "PROVIDED",
+              "UNKNOWN"
+            ],
+            "title": "Reaction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "memory",
+          "attention",
+          "reaction"
+        ],
+        "title": "AnswerHelpDeclaration",
+        "type": "object"
+      },
+      "AssessmentDetail": {
+        "properties": {
+          "alert": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlertRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/app__schemas__doctor__AnalysisSummary"
+          },
+          "analysis_details": {
+            "$ref": "#/components/schemas/AnalysisDetails"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "cognitive_index": {
+            "$ref": "#/components/schemas/CognitiveIndex"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "longitudinal_eligible": {
+            "title": "Longitudinal Eligible",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "quality_details": {
+            "$ref": "#/components/schemas/QualityDetails"
+          },
+          "quality_status": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "schedule_purpose": {
+            "enum": [
+              "SCHEDULED",
+              "RETAKE_AFTER_UNRELIABLE",
+              "EXTRA_ATTEMPT",
+              "OFF_SCHEDULE"
+            ],
+            "title": "Schedule Purpose",
+            "type": "string"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/Scores"
+          },
+          "scoring_version": {
+            "title": "Scoring Version",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "LIVE_DEMO",
+              "SYNTHETIC_HISTORY",
+              "SCENARIO_REPLAY"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "observed_at",
+          "target_at",
+          "source",
+          "schedule_purpose",
+          "quality_status",
+          "longitudinal_eligible",
+          "scores",
+          "forecast",
+          "analysis",
+          "alert",
+          "cognitive_index",
+          "protocol_version",
+          "scoring_version",
+          "quality_details",
+          "context",
+          "analysis_details"
+        ],
+        "title": "AssessmentDetail",
+        "type": "object"
+      },
+      "AssessmentReceipt": {
+        "properties": {
+          "analysis": {
+            "$ref": "#/components/schemas/app__schemas__assessments__AnalysisSummary",
+            "description": "Current persisted analysis availability"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/QualitySummary"
+          },
+          "received_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "saved": {
+            "const": true,
+            "default": true,
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "session_id",
+          "received_at",
+          "quality",
+          "analysis",
+          "replayed"
+        ],
+        "title": "AssessmentReceipt",
+        "type": "object"
+      },
+      "AssessmentStatus": {
+        "properties": {
+          "current_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurrentSession"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/PatientSchedule"
+          },
+          "server_time": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Server Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient_id",
+          "server_time",
+          "current_session",
+          "last_receipt",
+          "schedule"
+        ],
+        "title": "AssessmentStatus",
+        "type": "object"
+      },
+      "AssessmentSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "attention": {
+            "$ref": "#/components/schemas/AttentionRecord"
+          },
+          "context": {
+            "$ref": "#/components/schemas/ContextCheckinIn"
+          },
+          "memory": {
+            "$ref": "#/components/schemas/MemoryRecord"
+          },
+          "practice": {
+            "$ref": "#/components/schemas/PracticeRecord"
+          },
+          "protocol_version": {
+            "maxLength": 64,
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionRecord"
+          },
+          "run_duration_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Run Duration Ms",
+            "type": "number"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "submission_key": {
+            "format": "uuid",
+            "title": "Submission Key",
+            "type": "string"
+          },
+          "telemetry": {
+            "$ref": "#/components/schemas/Telemetry"
+          }
+        },
+        "required": [
+          "submission_key",
+          "run_id",
+          "protocol_version",
+          "run_duration_ms",
+          "memory",
+          "attention",
+          "reaction",
+          "practice",
+          "telemetry",
+          "context"
+        ],
+        "title": "AssessmentSubmission",
+        "type": "object"
+      },
+      "Assistance": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_help": {
+            "$ref": "#/components/schemas/AnswerHelpDeclaration"
+          },
+          "context_help": {
+            "title": "Context Help",
+            "type": "boolean"
+          },
+          "navigation_help": {
+            "title": "Navigation Help",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "navigation_help",
+          "context_help",
+          "answer_help"
+        ],
+        "title": "Assistance",
+        "type": "object"
+      },
+      "AttentionProtocolOut": {
+        "properties": {
+          "gap_ms": {
+            "title": "Gap Ms",
+            "type": "integer"
+          },
+          "stimulus_ms": {
+            "title": "Stimulus Ms",
+            "type": "integer"
+          },
+          "trial_count": {
+            "title": "Trial Count",
+            "type": "integer"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionTrialOut"
+            },
+            "title": "Trials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "trial_count",
+          "stimulus_ms",
+          "gap_ms",
+          "trials"
+        ],
+        "title": "AttentionProtocolOut",
+        "type": "object"
+      },
+      "AttentionRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "completion": {
+            "enum": [
+              "COMPLETED",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "Completion",
+            "type": "string"
+          },
+          "end_reason": {
+            "enum": [
+              "FINISHED",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "End Reason",
+            "type": "string"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionTrial"
+            },
+            "maxItems": 30,
+            "title": "Trials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "completion",
+          "trials",
+          "end_reason"
+        ],
+        "title": "AttentionRecord",
+        "type": "object"
+      },
+      "AttentionTrial": {
+        "additionalProperties": false,
+        "properties": {
+          "event_overflow": {
+            "title": "Event Overflow",
+            "type": "boolean"
+          },
+          "gap_end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap End Ms"
+          },
+          "interruptions": {
+            "items": {
+              "$ref": "#/components/schemas/TimingInterruption"
+            },
+            "maxItems": 20,
+            "title": "Interruptions",
+            "type": "array"
+          },
+          "offset_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "stimulus removal; null only for an interrupted trial",
+            "title": "Offset Ms"
+          },
+          "onset_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Onset Ms",
+            "type": "number"
+          },
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/ResponseEvent"
+            },
+            "maxItems": 20,
+            "title": "Responses",
+            "type": "array"
+          },
+          "trial_id": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Trial Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_id",
+          "onset_ms",
+          "offset_ms",
+          "gap_end_ms",
+          "responses",
+          "interruptions",
+          "event_overflow"
+        ],
+        "title": "AttentionTrial",
+        "type": "object"
+      },
+      "AttentionTrialOut": {
+        "properties": {
+          "shape": {
+            "enum": [
+              "circle",
+              "square",
+              "triangle"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "trial_id": {
+            "title": "Trial Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_id",
+          "shape"
+        ],
+        "title": "AttentionTrialOut",
+        "type": "object"
+      },
+      "CognitiveIndex": {
+        "description": "Descriptive composite `cognitive_index_v1` (refinement 01): (memory + attention + speed)/3.\n\nA display summary of the three task outcomes — not a clinical test, disease stage or\nprobability, and not an input to the forecasting model or the alert rules. Observed and\nforecast values are independently nullable; null is unavailable, never zero.",
+        "properties": {
+          "forecast_components": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CognitiveIndexComponents"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "forecast_response_speed_clipped": {
+            "description": "Whether the projection clipped the predicted reaction time; false also when no projection exists (see forecast_unavailable_reasons) — never a readiness flag",
+            "title": "Forecast Response Speed Clipped",
+            "type": "boolean"
+          },
+          "forecast_unavailable_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Forecast Unavailable Reasons",
+            "type": "array"
+          },
+          "forecast_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Composite of the stored pre-assessment forecast's predictions (a projection)",
+            "title": "Forecast Value"
+          },
+          "observed_components": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CognitiveIndexComponents"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observed_unavailable_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Observed Unavailable Reasons",
+            "type": "array"
+          },
+          "observed_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Value"
+          },
+          "version": {
+            "const": "cognitive_index_v1",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "observed_value",
+          "forecast_value",
+          "observed_components",
+          "forecast_components",
+          "observed_unavailable_reasons",
+          "forecast_unavailable_reasons",
+          "forecast_response_speed_clipped"
+        ],
+        "title": "CognitiveIndex",
+        "type": "object"
+      },
+      "CognitiveIndexComponents": {
+        "description": "Normalized 0–100 values before weighting; raw scores/ms stay in `scores` and `forecast`.",
+        "properties": {
+          "attention": {
+            "title": "Attention",
+            "type": "number"
+          },
+          "memory": {
+            "title": "Memory",
+            "type": "number"
+          },
+          "response_speed": {
+            "description": "Derived from reaction time; higher = faster",
+            "title": "Response Speed",
+            "type": "number"
+          }
+        },
+        "required": [
+          "memory",
+          "attention",
+          "response_speed"
+        ],
+        "title": "CognitiveIndexComponents",
+        "type": "object"
+      },
+      "CognitiveIndexMetadata": {
+        "description": "Formula provenance for the UI's calculation disclosure (identical on every screen).",
+        "properties": {
+          "display_decimals": {
+            "title": "Display Decimals",
+            "type": "integer"
+          },
+          "reaction_time_ceiling_ms": {
+            "title": "Reaction Time Ceiling Ms",
+            "type": "number"
+          },
+          "reaction_time_floor_ms": {
+            "title": "Reaction Time Floor Ms",
+            "type": "number"
+          },
+          "scale_max": {
+            "title": "Scale Max",
+            "type": "number"
+          },
+          "scale_min": {
+            "title": "Scale Min",
+            "type": "number"
+          },
+          "supported_protocol_versions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Protocol Versions",
+            "type": "array"
+          },
+          "supported_scoring_versions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Scoring Versions",
+            "type": "array"
+          },
+          "version": {
+            "const": "cognitive_index_v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Equal one-third weights (an MVP design choice)",
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "version",
+          "supported_protocol_versions",
+          "supported_scoring_versions",
+          "weights",
+          "reaction_time_floor_ms",
+          "reaction_time_ceiling_ms",
+          "scale_min",
+          "scale_max",
+          "display_decimals"
+        ],
+        "title": "CognitiveIndexMetadata",
+        "type": "object"
+      },
+      "ContextCheckinIn": {
+        "additionalProperties": false,
+        "properties": {
+          "medication_change": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "true = a change was reported; null = unknown/skipped",
+            "title": "Medication Change"
+          },
+          "missing_fields": {
+            "additionalProperties": {
+              "enum": [
+                "SKIPPED",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "description": "Reason per null field. A null field whose reason is omitted is canonicalized to SKIPPED.",
+            "propertyNames": {
+              "enum": [
+                "sleep_hours",
+                "mood_score",
+                "medication_change"
+              ]
+            },
+            "title": "Missing Fields",
+            "type": "object"
+          },
+          "mood_score": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mood Score"
+          },
+          "reported_by": {
+            "$ref": "#/components/schemas/ReportedBy"
+          },
+          "sleep_hours": {
+            "anyOf": [
+              {
+                "maximum": 24.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,5}0*$)\\d{0,2}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Hours"
+          }
+        },
+        "required": [
+          "sleep_hours",
+          "mood_score",
+          "medication_change",
+          "reported_by",
+          "missing_fields"
+        ],
+        "title": "ContextCheckinIn",
+        "type": "object"
+      },
+      "ContextOut": {
+        "properties": {
+          "medication_change": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "true = change reported; null = unknown/skipped",
+            "title": "Medication Change"
+          },
+          "missing_fields": {
+            "additionalProperties": {
+              "enum": [
+                "SKIPPED",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "title": "Missing Fields",
+            "type": "object"
+          },
+          "mood_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mood Score"
+          },
+          "reported_by": {
+            "enum": [
+              "PATIENT",
+              "CAREGIVER_ASSISTED"
+            ],
+            "title": "Reported By",
+            "type": "string"
+          },
+          "sleep_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Hours"
+          }
+        },
+        "required": [
+          "sleep_hours",
+          "mood_score",
+          "medication_change",
+          "reported_by",
+          "missing_fields"
+        ],
+        "title": "ContextOut",
+        "type": "object"
+      },
+      "CurrentSession": {
+        "properties": {
+          "expires_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "started_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "STARTED",
+              "SUBMITTED",
+              "ABANDONED",
+              "EXPIRED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "started_at",
+          "expires_at",
+          "target_at"
+        ],
+        "title": "CurrentSession",
+        "type": "object"
+      },
+      "DoctorPatientDetail": {
+        "properties": {
+          "acknowledged_alert_count": {
+            "title": "Acknowledged Alert Count",
+            "type": "integer"
+          },
+          "assigned_at": {
+            "description": "When the caller's current assignment began",
+            "format": "date-time",
+            "title": "Assigned At",
+            "type": "string"
+          },
+          "latest_analysis_availability": {
+            "anyOf": [
+              {
+                "enum": [
+                  "PENDING",
+                  "BUILDING_BASELINE",
+                  "INSUFFICIENT_DATA",
+                  "MODEL_UNAVAILABLE",
+                  "ANALYSIS_ERROR",
+                  "COMPLETE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Analysis Availability"
+          },
+          "latest_assessment_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Assessment At"
+          },
+          "latest_deviation_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NORMAL",
+                  "REVIEW",
+                  "PERSISTENT_DEVIATION",
+                  "HIGH_DEVIATION"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Deviation Level"
+          },
+          "open_alert_count": {
+            "title": "Open Alert Count",
+            "type": "integer"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientHeader"
+          },
+          "score_metadata": {
+            "$ref": "#/components/schemas/CognitiveIndexMetadata",
+            "description": "Composite-score formula provenance for this screen's calculation disclosure"
+          }
+        },
+        "required": [
+          "patient",
+          "assigned_at",
+          "latest_assessment_at",
+          "latest_analysis_availability",
+          "latest_deviation_level",
+          "open_alert_count",
+          "acknowledged_alert_count",
+          "score_metadata"
+        ],
+        "title": "DoctorPatientDetail",
+        "type": "object"
+      },
+      "DoctorSummary": {
+        "properties": {
+          "acknowledged_alert_count": {
+            "title": "Acknowledged Alert Count",
+            "type": "integer"
+          },
+          "analysis_error_count": {
+            "title": "Analysis Error Count",
+            "type": "integer"
+          },
+          "assigned_patient_count": {
+            "title": "Assigned Patient Count",
+            "type": "integer"
+          },
+          "generated_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "open_alert_count": {
+            "title": "Open Alert Count",
+            "type": "integer"
+          },
+          "patients_with_open_alerts": {
+            "description": "Patients with any OPEN or ACKNOWLEDGED alert",
+            "title": "Patients With Open Alerts",
+            "type": "integer"
+          },
+          "pending_analysis_count": {
+            "title": "Pending Analysis Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assigned_patient_count",
+          "patients_with_open_alerts",
+          "open_alert_count",
+          "acknowledged_alert_count",
+          "pending_analysis_count",
+          "analysis_error_count",
+          "generated_at"
+        ],
+        "title": "DoctorSummary",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable code",
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "description": "Allow-listed safe context",
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "description": "Safe human-readable text",
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Server-generated request UUID (also in X-Request-ID)",
+            "title": "Request Id"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "ForecastSummary": {
+        "properties": {
+          "forecast_id": {
+            "format": "uuid",
+            "title": "Forecast Id",
+            "type": "string"
+          },
+          "history_cutoff_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "History Cutoff At",
+            "type": "string"
+          },
+          "issued_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Issued At",
+            "type": "string"
+          },
+          "model_kind": {
+            "enum": [
+              "LAST_VALUE",
+              "LINEAR_TREND",
+              "GRU"
+            ],
+            "title": "Model Kind",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "predicted_attention_score": {
+            "title": "Predicted Attention Score",
+            "type": "number"
+          },
+          "predicted_memory_score": {
+            "title": "Predicted Memory Score",
+            "type": "number"
+          },
+          "predicted_reaction_time_ms": {
+            "title": "Predicted Reaction Time Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "forecast_id",
+          "issued_at",
+          "history_cutoff_at",
+          "model_kind",
+          "model_version",
+          "policy_version",
+          "predicted_memory_score",
+          "predicted_attention_score",
+          "predicted_reaction_time_ms"
+        ],
+        "title": "ForecastSummary",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "InputMode": {
+        "enum": [
+          "keyboard",
+          "pointer"
+        ],
+        "title": "InputMode",
+        "type": "string"
+      },
+      "InsightAlert": {
+        "description": "Panel F needs the alert's creation time and original category beside its current status.",
+        "properties": {
+          "alert_id": {
+            "format": "uuid",
+            "title": "Alert Id",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deviation_level": {
+            "enum": [
+              "REVIEW",
+              "PERSISTENT_DEVIATION",
+              "HIGH_DEVIATION"
+            ],
+            "title": "Deviation Level",
+            "type": "string"
+          },
+          "workflow_status": {
+            "description": "Current status, not the status on that date",
+            "enum": [
+              "OPEN",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "Workflow Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alert_id",
+          "created_at",
+          "deviation_level",
+          "workflow_status"
+        ],
+        "title": "InsightAlert",
+        "type": "object"
+      },
+      "InsightAssessment": {
+        "description": "A timeline item plus the fields the Insights panels need (no raw answers, no notes).",
+        "properties": {
+          "alert": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlertRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/app__schemas__doctor__AnalysisSummary"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "cognitive_index": {
+            "$ref": "#/components/schemas/CognitiveIndex"
+          },
+          "comparison_segment_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque comparability segment (protocol|scoring|input mode|device epoch)",
+            "title": "Comparison Segment Key"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_representative": {
+            "description": "The weekly representative for its slot",
+            "title": "Is Representative",
+            "type": "boolean"
+          },
+          "linked_alert": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InsightAlert"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "longitudinal_eligible": {
+            "title": "Longitudinal Eligible",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "previous_comparable_assessment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Adjacent eligible predecessor *within this filtered range* (same segment, same source, previous canonical slot, both composites available); null otherwise",
+            "title": "Previous Comparable Assessment Id"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "schedule_purpose": {
+            "enum": [
+              "SCHEDULED",
+              "RETAKE_AFTER_UNRELIABLE",
+              "EXTRA_ATTEMPT",
+              "OFF_SCHEDULE"
+            ],
+            "title": "Schedule Purpose",
+            "type": "string"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/Scores"
+          },
+          "scoring_version": {
+            "title": "Scoring Version",
+            "type": "string"
+          },
+          "slot_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slot Index"
+          },
+          "source": {
+            "enum": [
+              "LIVE_DEMO",
+              "SYNTHETIC_HISTORY",
+              "SCENARIO_REPLAY"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "observed_at",
+          "target_at",
+          "source",
+          "schedule_purpose",
+          "quality_status",
+          "longitudinal_eligible",
+          "scores",
+          "forecast",
+          "analysis",
+          "alert",
+          "cognitive_index",
+          "protocol_version",
+          "scoring_version",
+          "context",
+          "comparison_segment_key",
+          "slot_index",
+          "is_representative",
+          "previous_comparable_assessment_id",
+          "linked_alert"
+        ],
+        "title": "InsightAssessment",
+        "type": "object"
+      },
+      "InsightsFilters": {
+        "properties": {
+          "from": {
+            "description": "Inclusive UTC lower bound",
+            "format": "date-time",
+            "title": "From",
+            "type": "string"
+          },
+          "source": {
+            "description": "`ALL` or one assessment source enum",
+            "title": "Source",
+            "type": "string"
+          },
+          "to": {
+            "description": "Exclusive UTC upper bound",
+            "format": "date-time",
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "source"
+        ],
+        "title": "InsightsFilters",
+        "type": "object"
+      },
+      "InsightsResponse": {
+        "description": "One complete bounded snapshot for the selected patient and range (never partial).",
+        "properties": {
+          "assessment_count": {
+            "description": "Equals len(records)",
+            "title": "Assessment Count",
+            "type": "integer"
+          },
+          "complete": {
+            "const": true,
+            "description": "Always true; overflow is a 422, never a truncation",
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/InsightsFilters"
+          },
+          "generated_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "records": {
+            "description": "Ordered (observed_at ASC, assessment_id ASC)",
+            "items": {
+              "$ref": "#/components/schemas/InsightAssessment"
+            },
+            "title": "Records",
+            "type": "array"
+          },
+          "score_metadata": {
+            "$ref": "#/components/schemas/CognitiveIndexMetadata"
+          },
+          "timezone": {
+            "description": "Patient IANA zone for displayed dates",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient_id",
+          "timezone",
+          "generated_at",
+          "filters",
+          "complete",
+          "assessment_count",
+          "score_metadata",
+          "records"
+        ],
+        "title": "InsightsResponse",
+        "type": "object"
+      },
+      "LimitsOut": {
+        "properties": {
+          "max_events_per_trial": {
+            "title": "Max Events Per Trial",
+            "type": "integer"
+          },
+          "max_run_duration_ms": {
+            "title": "Max Run Duration Ms",
+            "type": "integer"
+          },
+          "max_telemetry_events": {
+            "title": "Max Telemetry Events",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_events_per_trial",
+          "max_telemetry_events",
+          "max_run_duration_ms"
+        ],
+        "title": "LimitsOut",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "MemoryProtocolOut": {
+        "properties": {
+          "distractor_ms": {
+            "title": "Distractor Ms",
+            "type": "integer"
+          },
+          "distractor_step_ms": {
+            "title": "Distractor Step Ms",
+            "type": "integer"
+          },
+          "exposure_ms": {
+            "title": "Exposure Ms",
+            "type": "integer"
+          },
+          "max_entries": {
+            "title": "Max Entries",
+            "type": "integer"
+          },
+          "max_entry_chars": {
+            "title": "Max Entry Chars",
+            "type": "integer"
+          },
+          "recall_limit_ms": {
+            "title": "Recall Limit Ms",
+            "type": "integer"
+          },
+          "word_set_id": {
+            "title": "Word Set Id",
+            "type": "string"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Words",
+            "type": "array"
+          }
+        },
+        "required": [
+          "word_set_id",
+          "words",
+          "exposure_ms",
+          "distractor_ms",
+          "recall_limit_ms",
+          "max_entries",
+          "max_entry_chars",
+          "distractor_step_ms"
+        ],
+        "title": "MemoryProtocolOut",
+        "type": "object"
+      },
+      "MemoryRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "completion": {
+            "enum": [
+              "COMPLETED",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "Completion",
+            "type": "string"
+          },
+          "distractor_end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distractor End Ms"
+          },
+          "distractor_start_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distractor Start Ms"
+          },
+          "end_reason": {
+            "enum": [
+              "DONE",
+              "NONE_RECALLED",
+              "TIMEOUT",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "End Reason",
+            "type": "string"
+          },
+          "exposure_end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exposure End Ms"
+          },
+          "exposure_start_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exposure Start Ms"
+          },
+          "interruptions": {
+            "items": {
+              "$ref": "#/components/schemas/TimingInterruption"
+            },
+            "maxItems": 20,
+            "title": "Interruptions",
+            "type": "array"
+          },
+          "recall_end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall End Ms"
+          },
+          "recall_entries": {
+            "items": {
+              "maxLength": 40,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Recall Entries",
+            "type": "array"
+          },
+          "recall_start_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Start Ms"
+          }
+        },
+        "required": [
+          "completion",
+          "exposure_start_ms",
+          "exposure_end_ms",
+          "distractor_start_ms",
+          "distractor_end_ms",
+          "recall_start_ms",
+          "recall_end_ms",
+          "recall_entries",
+          "end_reason",
+          "interruptions"
+        ],
+        "title": "MemoryRecord",
+        "type": "object"
+      },
+      "ModeChange": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "offset_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Offset Ms",
+            "type": "number"
+          },
+          "to": {
+            "$ref": "#/components/schemas/InputMode"
+          }
+        },
+        "required": [
+          "offset_ms",
+          "from",
+          "to"
+        ],
+        "title": "ModeChange",
+        "type": "object"
+      },
+      "ModelStatus": {
+        "description": "Sanitized model/policy readiness. No artifact paths, training identities or patient data.\n\n`model_loaded` alone is not `forecast_ready`: a verified bundle, its active calibrated policy and\na compatible MODEL_MODE are all required.",
+        "properties": {
+          "forecast_ready": {
+            "title": "Forecast Ready",
+            "type": "boolean"
+          },
+          "model_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "LAST_VALUE",
+                  "LINEAR_TREND",
+                  "GRU"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Kind"
+          },
+          "model_loaded": {
+            "title": "Model Loaded",
+            "type": "boolean"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "policy_ready": {
+            "title": "Policy Ready",
+            "type": "boolean"
+          },
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sanitized reason when forecasting is not ready; null when ready",
+            "title": "Reason Code"
+          }
+        },
+        "required": [
+          "model_kind",
+          "model_version",
+          "policy_version",
+          "model_loaded",
+          "policy_ready",
+          "forecast_ready",
+          "reason_code"
+        ],
+        "title": "ModelStatus",
+        "type": "object"
+      },
+      "Page_AlertEventOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AlertEventOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque signed cursor for the next page; null at the end",
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AlertEventOut]",
+        "type": "object"
+      },
+      "Page_AlertListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AlertListItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque signed cursor for the next page; null at the end",
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AlertListItem]",
+        "type": "object"
+      },
+      "Page_PatientListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PatientListItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque signed cursor for the next page; null at the end",
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[PatientListItem]",
+        "type": "object"
+      },
+      "Page_TimelineItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque signed cursor for the next page; null at the end",
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[TimelineItem]",
+        "type": "object"
+      },
+      "PatientHeader": {
+        "properties": {
+          "account_active": {
+            "title": "Account Active",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient_id",
+          "display_name",
+          "is_demo",
+          "timezone",
+          "account_active"
+        ],
+        "title": "PatientHeader",
+        "type": "object"
+      },
+      "PatientListItem": {
+        "properties": {
+          "account_active": {
+            "description": "Patient login status; history stays visible while assigned",
+            "title": "Account Active",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "latest_analysis_availability": {
+            "anyOf": [
+              {
+                "enum": [
+                  "PENDING",
+                  "BUILDING_BASELINE",
+                  "INSUFFICIENT_DATA",
+                  "MODEL_UNAVAILABLE",
+                  "ANALYSIS_ERROR",
+                  "COMPLETE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Analysis Availability"
+          },
+          "latest_assessment_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Assessment At"
+          },
+          "latest_deviation_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NORMAL",
+                  "REVIEW",
+                  "PERSISTENT_DEVIATION",
+                  "HIGH_DEVIATION"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Deviation Level"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "unresolved_alert_count": {
+            "title": "Unresolved Alert Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "patient_id",
+          "display_name",
+          "is_demo",
+          "account_active",
+          "latest_assessment_at",
+          "latest_analysis_availability",
+          "latest_deviation_level",
+          "unresolved_alert_count"
+        ],
+        "title": "PatientListItem",
+        "type": "object"
+      },
+      "PatientSchedule": {
+        "properties": {
+          "anchor_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor At"
+          },
+          "next_target_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Target At"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "scheduled_start_allowed": {
+            "title": "Scheduled Start Allowed",
+            "type": "boolean"
+          },
+          "window_closes_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Closes At"
+          },
+          "window_opens_at": {
+            "anyOf": [
+              {
+                "description": "UTC ISO-8601 ending in Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Opens At"
+          }
+        },
+        "required": [
+          "anchor_at",
+          "next_target_at",
+          "window_opens_at",
+          "window_closes_at",
+          "scheduled_start_allowed",
+          "reason_codes"
+        ],
+        "title": "PatientSchedule",
+        "type": "object"
+      },
+      "PauseEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Ms"
+          },
+          "start_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Start Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start_ms",
+          "end_ms"
+        ],
+        "title": "PauseEvent",
+        "type": "object"
+      },
+      "PracticeAttentionTrialOut": {
+        "properties": {
+          "is_target": {
+            "title": "Is Target",
+            "type": "boolean"
+          },
+          "shape": {
+            "enum": [
+              "circle",
+              "square",
+              "triangle"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "trial_id": {
+            "title": "Trial Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_id",
+          "shape",
+          "is_target"
+        ],
+        "title": "PracticeAttentionTrialOut",
+        "type": "object"
+      },
+      "PracticeProtocolOut": {
+        "properties": {
+          "attention_trials": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeAttentionTrialOut"
+            },
+            "title": "Attention Trials",
+            "type": "array"
+          },
+          "max_repeats": {
+            "title": "Max Repeats",
+            "type": "integer"
+          },
+          "memory_words": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Memory Words",
+            "type": "array"
+          },
+          "reaction_foreperiods_ms": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Reaction Foreperiods Ms",
+            "type": "array"
+          }
+        },
+        "required": [
+          "memory_words",
+          "attention_trials",
+          "reaction_foreperiods_ms",
+          "max_repeats"
+        ],
+        "title": "PracticeProtocolOut",
+        "type": "object"
+      },
+      "PracticeRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "completed": {
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "repeats": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Repeats",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "completed",
+          "repeats"
+        ],
+        "title": "PracticeRecord",
+        "type": "object"
+      },
+      "QualityDetails": {
+        "properties": {
+          "assistance": {
+            "additionalProperties": true,
+            "description": "Declared help (navigation/context/answers)",
+            "title": "Assistance",
+            "type": "object"
+          },
+          "comparability_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Comparability Flags",
+            "type": "array"
+          },
+          "comparability_key": {
+            "title": "Comparability Key",
+            "type": "string"
+          },
+          "final_input_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Input Mode"
+          },
+          "initial_input_mode": {
+            "title": "Initial Input Mode",
+            "type": "string"
+          },
+          "overall": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Overall",
+            "type": "string"
+          },
+          "practice_repeated": {
+            "title": "Practice Repeated",
+            "type": "boolean"
+          },
+          "tasks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TaskEvidence"
+            },
+            "title": "Tasks",
+            "type": "object"
+          }
+        },
+        "required": [
+          "overall",
+          "tasks",
+          "initial_input_mode",
+          "final_input_mode",
+          "assistance",
+          "comparability_key",
+          "comparability_flags",
+          "practice_repeated"
+        ],
+        "title": "QualityDetails",
+        "type": "object"
+      },
+      "QualitySummary": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason_codes",
+          "message"
+        ],
+        "title": "QualitySummary",
+        "type": "object"
+      },
+      "ReactionProtocolOut": {
+        "properties": {
+          "intertrial_ms": {
+            "title": "Intertrial Ms",
+            "type": "integer"
+          },
+          "minimum_response_ms": {
+            "title": "Minimum Response Ms",
+            "type": "integer"
+          },
+          "response_window_ms": {
+            "title": "Response Window Ms",
+            "type": "integer"
+          },
+          "trial_count": {
+            "title": "Trial Count",
+            "type": "integer"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/ReactionTrialOut"
+            },
+            "title": "Trials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "trial_count",
+          "response_window_ms",
+          "minimum_response_ms",
+          "intertrial_ms",
+          "trials"
+        ],
+        "title": "ReactionProtocolOut",
+        "type": "object"
+      },
+      "ReactionRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "completion": {
+            "enum": [
+              "COMPLETED",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "Completion",
+            "type": "string"
+          },
+          "end_reason": {
+            "enum": [
+              "FINISHED",
+              "SKIPPED",
+              "STOPPED"
+            ],
+            "title": "End Reason",
+            "type": "string"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/ReactionTrial"
+            },
+            "maxItems": 10,
+            "title": "Trials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "completion",
+          "trials",
+          "end_reason"
+        ],
+        "title": "ReactionRecord",
+        "type": "object"
+      },
+      "ReactionTrial": {
+        "additionalProperties": false,
+        "properties": {
+          "end_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "End Ms",
+            "type": "number"
+          },
+          "end_reason": {
+            "enum": [
+              "RESPONSE",
+              "FALSE_START",
+              "TIMEOUT",
+              "INTERRUPTED"
+            ],
+            "title": "End Reason",
+            "type": "string"
+          },
+          "event_overflow": {
+            "title": "Event Overflow",
+            "type": "boolean"
+          },
+          "go_onset_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when the trial ended before GO",
+            "title": "Go Onset Ms"
+          },
+          "interruptions": {
+            "items": {
+              "$ref": "#/components/schemas/TimingInterruption"
+            },
+            "maxItems": 20,
+            "title": "Interruptions",
+            "type": "array"
+          },
+          "intertrial_end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null if the run stopped before the pause ended",
+            "title": "Intertrial End Ms"
+          },
+          "max_frame_gap_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Frame Gap Ms"
+          },
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/ResponseEvent"
+            },
+            "maxItems": 20,
+            "title": "Responses",
+            "type": "array"
+          },
+          "trial_id": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Trial Id",
+            "type": "string"
+          },
+          "wait_start_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Wait Start Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "trial_id",
+          "wait_start_ms",
+          "go_onset_ms",
+          "end_ms",
+          "intertrial_end_ms",
+          "responses",
+          "end_reason",
+          "interruptions",
+          "max_frame_gap_ms",
+          "event_overflow"
+        ],
+        "title": "ReactionTrial",
+        "type": "object"
+      },
+      "ReactionTrialOut": {
+        "properties": {
+          "foreperiod_ms": {
+            "title": "Foreperiod Ms",
+            "type": "integer"
+          },
+          "trial_id": {
+            "title": "Trial Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_id",
+          "foreperiod_ms"
+        ],
+        "title": "ReactionTrialOut",
+        "type": "object"
+      },
+      "ReadyResponse": {
+        "properties": {
+          "status": {
+            "const": "ready",
+            "default": "ready",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "ReadyResponse",
+        "type": "object"
+      },
+      "RenderProtocolOut": {
+        "description": "Client-rendering configuration only: no forecast, calibration, patient history or model data.",
+        "properties": {
+          "attention": {
+            "$ref": "#/components/schemas/AttentionProtocolOut"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/LimitsOut"
+          },
+          "memory": {
+            "$ref": "#/components/schemas/MemoryProtocolOut"
+          },
+          "practice": {
+            "$ref": "#/components/schemas/PracticeProtocolOut"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionProtocolOut"
+          }
+        },
+        "required": [
+          "protocol_version",
+          "language",
+          "memory",
+          "attention",
+          "reaction",
+          "practice",
+          "limits"
+        ],
+        "title": "RenderProtocolOut",
+        "type": "object"
+      },
+      "ReportedBy": {
+        "enum": [
+          "PATIENT",
+          "CAREGIVER_ASSISTED"
+        ],
+        "title": "ReportedBy",
+        "type": "string"
+      },
+      "ResponseEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "offset_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Offset Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "offset_ms"
+        ],
+        "title": "ResponseEvent",
+        "type": "object"
+      },
+      "Scores": {
+        "properties": {
+          "attention_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "0–100 points; null if the task was not completed",
+            "title": "Attention Score"
+          },
+          "memory_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "0–100 points; null if the task was not completed",
+            "title": "Memory Score"
+          },
+          "reaction_time_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Median usable reaction time in ms; null if unavailable",
+            "title": "Reaction Time Ms"
+          }
+        },
+        "required": [
+          "memory_score",
+          "attention_score",
+          "reaction_time_ms"
+        ],
+        "title": "Scores",
+        "type": "object"
+      },
+      "SessionRecoveryResponse": {
+        "description": "Owned session metadata. Never task words or raw answers (reload recovery = abandon/new).",
+        "properties": {
+          "assessment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id"
+          },
+          "expires_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "input_mode": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "receipt_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Path"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/SessionSchedule"
+          },
+          "scoring_version": {
+            "title": "Scoring Version",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "started_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "description": "Effective status at server time (expiry is not a GET write)",
+            "enum": [
+              "STARTED",
+              "SUBMITTED",
+              "ABANDONED",
+              "EXPIRED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "started_at",
+          "expires_at",
+          "target_at",
+          "protocol_version",
+          "scoring_version",
+          "input_mode",
+          "schedule",
+          "assessment_id",
+          "receipt_path"
+        ],
+        "title": "SessionRecoveryResponse",
+        "type": "object"
+      },
+      "SessionSchedule": {
+        "properties": {
+          "anchor_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Anchor At",
+            "type": "string"
+          },
+          "longitudinal_eligible": {
+            "description": "Provisional until submission; final (representative) value once submitted",
+            "title": "Longitudinal Eligible",
+            "type": "boolean"
+          },
+          "purpose": {
+            "enum": [
+              "SCHEDULED",
+              "RETAKE_AFTER_UNRELIABLE",
+              "EXTRA_ATTEMPT",
+              "OFF_SCHEDULE"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "slot_index": {
+            "title": "Slot Index",
+            "type": "integer"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "anchor_at",
+          "slot_index",
+          "target_at",
+          "purpose",
+          "longitudinal_eligible",
+          "reason_codes"
+        ],
+        "title": "SessionSchedule",
+        "type": "object"
+      },
+      "StartAssessmentResponse": {
+        "properties": {
+          "expires_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "input_mode": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "protocol": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RenderProtocolOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Task-launch material; null when a replayed session is no longer STARTED"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/SessionSchedule"
+          },
+          "scoring_version": {
+            "title": "Scoring Version",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "started_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "description": "Effective status at server time (expiry is not a GET write)",
+            "enum": [
+              "STARTED",
+              "SUBMITTED",
+              "ABANDONED",
+              "EXPIRED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "started_at",
+          "expires_at",
+          "target_at",
+          "protocol_version",
+          "scoring_version",
+          "input_mode",
+          "schedule",
+          "protocol",
+          "replayed"
+        ],
+        "title": "StartAssessmentResponse",
+        "type": "object"
+      },
+      "StartSessionRequest": {
+        "additionalProperties": false,
+        "description": "All fields required. The client cannot set target time, source, protocol, model or forecast.",
+        "properties": {
+          "allow_unscheduled": {
+            "title": "Allow Unscheduled",
+            "type": "boolean"
+          },
+          "device_changed": {
+            "title": "Device Changed",
+            "type": "boolean"
+          },
+          "input_mode": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "navigation_assistance": {
+            "title": "Navigation Assistance",
+            "type": "boolean"
+          },
+          "start_key": {
+            "format": "uuid",
+            "title": "Start Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_key",
+          "input_mode",
+          "device_changed",
+          "navigation_assistance",
+          "allow_unscheduled"
+        ],
+        "title": "StartSessionRequest",
+        "type": "object"
+      },
+      "TaskEvidence": {
+        "properties": {
+          "completion": {
+            "title": "Completion",
+            "type": "string"
+          },
+          "counters": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Score components (counts only; no raw answers)",
+            "title": "Counters",
+            "type": "object"
+          },
+          "low_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Low Flags",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "completion",
+          "status",
+          "low_flags",
+          "warnings",
+          "counters"
+        ],
+        "title": "TaskEvidence",
+        "type": "object"
+      },
+      "Telemetry": {
+        "additionalProperties": false,
+        "properties": {
+          "assistance": {
+            "$ref": "#/components/schemas/Assistance"
+          },
+          "blur_count": {
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Blur Count",
+            "type": "integer"
+          },
+          "event_overflow": {
+            "title": "Event Overflow",
+            "type": "boolean"
+          },
+          "final_input_mode": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "initial_input_mode": {
+            "$ref": "#/components/schemas/InputMode"
+          },
+          "mode_changes": {
+            "items": {
+              "$ref": "#/components/schemas/ModeChange"
+            },
+            "maxItems": 500,
+            "title": "Mode Changes",
+            "type": "array"
+          },
+          "pause_events": {
+            "items": {
+              "$ref": "#/components/schemas/PauseEvent"
+            },
+            "maxItems": 500,
+            "title": "Pause Events",
+            "type": "array"
+          },
+          "viewport": {
+            "$ref": "#/components/schemas/Viewport"
+          },
+          "visibility_events": {
+            "items": {
+              "$ref": "#/components/schemas/VisibilityEvent"
+            },
+            "maxItems": 500,
+            "title": "Visibility Events",
+            "type": "array"
+          }
+        },
+        "required": [
+          "initial_input_mode",
+          "final_input_mode",
+          "viewport",
+          "visibility_events",
+          "pause_events",
+          "blur_count",
+          "mode_changes",
+          "event_overflow",
+          "assistance"
+        ],
+        "title": "Telemetry",
+        "type": "object"
+      },
+      "TimelineItem": {
+        "properties": {
+          "alert": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlertRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/app__schemas__doctor__AnalysisSummary"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "cognitive_index": {
+            "$ref": "#/components/schemas/CognitiveIndex"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "longitudinal_eligible": {
+            "title": "Longitudinal Eligible",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "VALID",
+              "LOW",
+              "INCOMPLETE"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "schedule_purpose": {
+            "enum": [
+              "SCHEDULED",
+              "RETAKE_AFTER_UNRELIABLE",
+              "EXTRA_ATTEMPT",
+              "OFF_SCHEDULE"
+            ],
+            "title": "Schedule Purpose",
+            "type": "string"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/Scores"
+          },
+          "source": {
+            "enum": [
+              "LIVE_DEMO",
+              "SYNTHETIC_HISTORY",
+              "SCENARIO_REPLAY"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "target_at": {
+            "description": "UTC ISO-8601 ending in Z",
+            "format": "date-time",
+            "title": "Target At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "observed_at",
+          "target_at",
+          "source",
+          "schedule_purpose",
+          "quality_status",
+          "longitudinal_eligible",
+          "scores",
+          "forecast",
+          "analysis",
+          "alert",
+          "cognitive_index"
+        ],
+        "title": "TimelineItem",
+        "type": "object"
+      },
+      "TimingInterruption": {
+        "additionalProperties": false,
+        "properties": {
+          "end_ms": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null if the run ended while interrupted",
+            "title": "End Ms"
+          },
+          "kind": {
+            "enum": [
+              "HIDDEN",
+              "PAUSE",
+              "TIMING_GAP"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "start_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Start Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "start_ms",
+          "end_ms"
+        ],
+        "title": "TimingInterruption",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "description": "Seconds until the bearer token expires",
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSummary"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "UserSummary": {
+        "description": "Safe current-account summary. Role and profile IDs come from the database, never the client.",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "doctor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Doctor identifier (the doctor's account ID); null for patients",
+            "title": "Doctor Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patient_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient profile ID; null for doctors",
+            "title": "Patient Id"
+          },
+          "role": {
+            "enum": [
+              "patient",
+              "doctor"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "display_name",
+          "role",
+          "patient_id",
+          "doctor_id"
+        ],
+        "title": "UserSummary",
+        "type": "object"
+      },
+      "Viewport": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "maximum": 10000.0,
+            "minimum": 100.0,
+            "multipleOf": 100.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "width": {
+            "maximum": 10000.0,
+            "minimum": 100.0,
+            "multipleOf": 100.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ],
+        "title": "Viewport",
+        "type": "object"
+      },
+      "VisibilityEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "offset_ms": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Offset Ms",
+            "type": "number"
+          },
+          "state": {
+            "enum": [
+              "visible",
+              "hidden"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "offset_ms",
+          "state"
+        ],
+        "title": "VisibilityEvent",
+        "type": "object"
+      },
+      "app__schemas__assessments__AnalysisSummary": {
+        "description": "Availability only: never deviation categories, anomaly numbers or internal failures.",
+        "properties": {
+          "availability": {
+            "enum": [
+              "PENDING",
+              "BUILDING_BASELINE",
+              "INSUFFICIENT_DATA",
+              "MODEL_UNAVAILABLE",
+              "ANALYSIS_ERROR",
+              "COMPLETE"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "availability",
+          "reason_codes",
+          "message"
+        ],
+        "title": "AnalysisSummary",
+        "type": "object"
+      },
+      "app__schemas__doctor__AnalysisSummary": {
+        "properties": {
+          "aggregate_deviation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean of the two largest directional deviations",
+            "title": "Aggregate Deviation"
+          },
+          "availability": {
+            "enum": [
+              "PENDING",
+              "BUILDING_BASELINE",
+              "INSUFFICIENT_DATA",
+              "MODEL_UNAVAILABLE",
+              "ANALYSIS_ERROR",
+              "COMPLETE"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "deviation_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NORMAL",
+                  "REVIEW",
+                  "PERSISTENT_DEVIATION",
+                  "HIGH_DEVIATION"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only for COMPLETE analyses",
+            "title": "Deviation Level"
+          },
+          "persistent_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Count"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "availability",
+          "deviation_level",
+          "aggregate_deviation",
+          "persistent_count",
+          "reason_codes"
+        ],
+        "title": "AnalysisSummary",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "Bearer token from POST /auth/login",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Cognitive monitoring prototype API (synthetic/demo data only; not a diagnostic or emergency service). All errors use the shared `ErrorResponse` envelope.",
+    "title": "COGNUANCE",
+    "version": "backend_contract_v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "JSON email/password login. Returns a short-lived bearer token (keep it in memory only).\n\nFailed attempts are limited per email and per client address (429 + Retry-After).",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds the limit"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body is not application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many attempts; see Retry-After"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revoke the current bearer session. The same token is rejected afterwards.",
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/doctor/alerts": {
+      "get": {
+        "description": "Default: unresolved (OPEN or ACKNOWLEDGED). Ordered created_at DESC, alert_id DESC.",
+        "operationId": "listDoctorAlerts",
+        "parameters": [
+          {
+            "description": "Page size (default 20, max 100)",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Page size (default 20, max 100)",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque next_cursor from the previous page",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque next_cursor from the previous page",
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "patient_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Patient Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workflow_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "OPEN",
+                    "ACKNOWLEDGED",
+                    "RESOLVED"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workflow Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "deviation_level",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "REVIEW",
+                    "PERSISTENT_DEVIATION",
+                    "HIGH_DEVIATION"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Deviation Level"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_resolved",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Resolved",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AlertListItem_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Alerts",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/alerts/{alert_id}": {
+      "get": {
+        "operationId": "getDoctorAlert",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Alert",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/alerts/{alert_id}/events": {
+      "get": {
+        "description": "Append-only review history, created_at ASC. Actor is null for the system CREATED event.",
+        "operationId": "listAlertEvents",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (default 20, max 100)",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Page size (default 20, max 100)",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque next_cursor from the previous page",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque next_cursor from the previous page",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AlertEventOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Alert Events",
+        "tags": [
+          "doctor"
+        ]
+      },
+      "post": {
+        "description": "Acknowledge, add a note, or resolve (200). Same request_key + same payload → replayed=true.\n\n409 codes: IDEMPOTENCY_CONFLICT, STALE_ALERT_VERSION (details: current status/version),\nINVALID_ALERT_TRANSITION.",
+        "operationId": "recordAlertEvent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Alert Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertEventResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Idempotency mismatch, invalid state/transition or stale version"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds the limit"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body is not application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Alert Event",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/patients": {
+      "get": {
+        "description": "Assigned patients, newest profile first (created_at DESC, patient_id DESC).",
+        "operationId": "listDoctorPatients",
+        "parameters": [
+          {
+            "description": "Page size (default 20, max 100)",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Page size (default 20, max 100)",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque next_cursor from the previous page",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque next_cursor from the previous page",
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Search display name / demo key",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search display name / demo key",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_unresolved_alerts",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Has Unresolved Alerts"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PatientListItem_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Patients",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/patients/{patient_id}": {
+      "get": {
+        "operationId": "getDoctorPatient",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctorPatientDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Patient",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/patients/{patient_id}/assessments/{assessment_id}": {
+      "get": {
+        "description": "Scored evidence, context and grounded analysis details. No raw response payload.",
+        "operationId": "getPatientAssessment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Assessment",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/patients/{patient_id}/insights": {
+      "get": {
+        "description": "One complete bounded snapshot for the Visual Insights panels (refinement 01).\n\nRead-only; every record carries its `cognitive_index_v1` projection, context, comparability\nsegment and linked alert. Ordered (observed_at ASC, assessment_id ASC). 400 `INVALID_QUERY`\nif `from >= to` or the window exceeds 366 days; 422 `INSIGHTS_RANGE_TOO_LARGE` above 500\nassessments (never truncated).",
+        "operationId": "getPatientInsights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive UTC lower bound",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "description": "UTC ISO-8601 ending in Z",
+              "format": "date-time",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive UTC upper bound",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "description": "UTC ISO-8601 ending in Z",
+              "format": "date-time",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "description": "`ALL` (default) or one assessment source",
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "default": "ALL",
+              "description": "`ALL` (default) or one assessment source",
+              "enum": [
+                "ALL",
+                "LIVE_DEMO",
+                "SYNTHETIC_HISTORY",
+                "SCENARIO_REPLAY"
+              ],
+              "title": "Source",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Insights",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/patients/{patient_id}/timeline": {
+      "get": {
+        "description": "Every observation (incl. LOW/INCOMPLETE/extra/off-schedule), observed_at DESC. Nulls stay null.",
+        "operationId": "getPatientTimeline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (default 50, max 100)",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Page size (default 50, max 100)",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque next_cursor from the previous page",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque next_cursor from the previous page",
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Inclusive UTC lower bound",
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "UTC ISO-8601 ending in Z",
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive UTC lower bound",
+              "title": "From"
+            }
+          },
+          {
+            "description": "Exclusive UTC upper bound",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "UTC ISO-8601 ending in Z",
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exclusive UTC upper bound",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_TimelineItem_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed JSON, cursor or query combination"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Timeline",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/doctor/summary": {
+      "get": {
+        "description": "Counts over currently assigned patients only (operational categories, not risk estimates).",
+        "operationId": "getDoctorSummary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctorSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Summary",
+        "tags": [
+          "doctor"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Process liveness only: no database or model call.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/model/status": {
+      "get": {
+        "description": "Model unavailability is a valid 200 document; 503 only when the status cannot be served.",
+        "operationId": "getModelStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable"
+          }
+        },
+        "summary": "Model Status",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/patient/assessment-sessions": {
+      "post": {
+        "description": "Start and freeze one session (protocol, schedule, comparability, forecast) before any task runs.\n\n409 codes: ACTIVE_SESSION_EXISTS, IDEMPOTENCY_CONFLICT, OUTSIDE_SCHEDULE_WINDOW,\nATTEMPT_LIMIT_REACHED, SLOT_COMPLETED.",
+        "operationId": "startAssessmentSession",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartAssessmentResponse"
+                }
+              }
+            },
+            "description": "Idempotent replay of the same start_key"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartAssessmentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Idempotency mismatch, invalid state/transition or stale version"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds the limit"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body is not application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Session",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/patient/assessment-sessions/{session_id}": {
+      "get": {
+        "description": "Owned session metadata. Task material and raw answers are never re-exposed.",
+        "operationId": "getAssessmentSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRecoveryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Session",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/patient/assessment-sessions/{session_id}/abandon": {
+      "post": {
+        "description": "STARTED → ABANDONED (+ audit event). Already abandoned/expired → 204; submitted → 409.",
+        "operationId": "abandonAssessmentSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Idempotency mismatch, invalid state/transition or stale version"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Abandon",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/patient/assessment-sessions/{session_id}/submissions": {
+      "post": {
+        "description": "Phase A (score + durable receipt) then a short bounded phase-B analysis attempt.\n\nA committed receipt is returned even if analysis fails (analysis shows ANALYSIS_ERROR/PENDING).\n409 codes: IDEMPOTENCY_CONFLICT, SESSION_EXPIRED, SESSION_ALREADY_SUBMITTED, SESSION_ABANDONED.",
+        "operationId": "submitAssessment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentSubmission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentReceipt"
+                }
+              }
+            },
+            "description": "Idempotent replay (same key and body)"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Idempotency mismatch, invalid state/transition or stale version"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds the limit"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body is not application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/patient/assessment-status": {
+      "get": {
+        "description": "Schedule, last receipt and unfinished-session recovery. Read-only (never mutates).",
+        "operationId": "getAssessmentStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Assessment Status",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/patient/assessments/{assessment_id}/receipt": {
+      "get": {
+        "description": "Safe persisted receipt with the current analysis availability. GET never processes work.",
+        "operationId": "getAssessmentReceipt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked bearer credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated caller has the wrong role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Record missing or not accessible to this caller"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Field or protocol validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Receipt",
+        "tags": [
+          "patient assessments"
+        ]
+      }
+    },
+    "/api/v1/ready": {
+      "get": {
+        "description": "Bounded database connectivity check + migration head verification (never applies migrations).",
+        "operationId": "getReadiness",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  }
+}

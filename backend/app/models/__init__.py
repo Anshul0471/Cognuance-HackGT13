@@ -1,0 +1,66 @@
+"""SQLAlchemy models. Import every model module here so Alembic sees its metadata."""
+
+from app.db.base import Base
+from app.models.assessment import (
+    AnalysisState,
+    Assessment,
+    AssessmentSession,
+    AssessmentSource,
+    ContextCheckin,
+    ForecastState,
+    InputMode,
+    MedicationChange,
+    ProcessingStatus,
+    Quality,
+    ReportedBy,
+    SchedulePurpose,
+    SessionStatus,
+)
+from app.models.audit import AuditEvent, AuthSession
+from app.models.forecasting import (
+    Alert,
+    AlertAction,
+    AlertEvent,
+    AlertStatus,
+    Analysis,
+    AnomalyPolicy,
+    DeviationLevel,
+    Forecast,
+    ModelKind,
+    ModelVersion,
+)
+from app.models.identity import DataProvenance, DoctorPatientAssignment, PatientProfile, User, UserRole
+
+__all__ = [
+    "AuditEvent",
+    "AuthSession",
+    "ProcessingStatus",
+    "Alert",
+    "AlertAction",
+    "AlertEvent",
+    "AlertStatus",
+    "Analysis",
+    "AnomalyPolicy",
+    "DeviationLevel",
+    "Forecast",
+    "ModelKind",
+    "ModelVersion",
+    "AnalysisState",
+    "Assessment",
+    "AssessmentSession",
+    "AssessmentSource",
+    "Base",
+    "ContextCheckin",
+    "DataProvenance",
+    "DoctorPatientAssignment",
+    "ForecastState",
+    "InputMode",
+    "MedicationChange",
+    "PatientProfile",
+    "Quality",
+    "ReportedBy",
+    "SchedulePurpose",
+    "SessionStatus",
+    "User",
+    "UserRole",
+]

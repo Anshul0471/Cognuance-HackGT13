@@ -1,0 +1,65 @@
+# Public documentation: root README only
+*.[mM][dD]
+*.[mM][aA][rR][kK][dD][oO][wW][nN]
+!/README.md
+[dD][oO][cC][sS]/
+
+# Local credentials and environment configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.test.example
+
+# Installed dependencies and caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# Generated outputs
+dist/
+dist-ssr/
+build/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+*.log
+logs/
+
+# Generated data and model artifacts (keep empty placeholders)
+backend/data/*
+!backend/data/.gitkeep
+backend/artifacts/*
+!backend/artifacts/.gitkeep
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+
+# Private seed credentials, training outputs, local ops
+backend/data/showcase-private/
+backend/data/e2e/
+deploy/*.env
+deploy/backups/
+deploy/local-workspace/
+frontend/e2e/.auth/
+
+# Editor / agent / machine-specific
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.cursor/

@@ -1,0 +1,32 @@
+# Hosted demo: HTTPS for {$APP_DOMAIN} (DNS must point here; certificate state persists in caddy_data).
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		-Server
+	}
+
+	# API keeps its /api/v1 prefix; responses carry their own no-store headers. Caddy does not trust
+	# incoming X-Forwarded-For by default, so clients cannot forge the address the API rate-limits on.
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	# Hashed assets: long cache; a missing asset is a real 404, never the SPA shell.
+	handle /assets/* {
+		root * /srv
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	handle {
+		root * /srv
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

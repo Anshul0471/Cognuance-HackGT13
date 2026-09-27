@@ -1,0 +1,121 @@
+# COGNUANCE hosted-demo topology (guide 07 §8). Standalone — never combined with compose.yaml.
+# Only `web` publishes ports; PostgreSQL and the API stay on the private network.
+#
+#   docker compose -f compose.deploy.yaml --env-file deploy/<private>.env up -d db
+#   docker compose -f compose.deploy.yaml --env-file deploy/<private>.env run --rm migrate
+#   docker compose -f compose.deploy.yaml --env-file deploy/<private>.env up -d api web
+#
+# `migrate` and `ops` are one-shot tools (profile "tools"): they never run on `up` or restart.
+name: cognuance
+
+x-api-env: &api-env
+  APP_ENV: demo
+  DEMO_MODE: "true"
+  API_PREFIX: /api/v1
+  DATABASE_URL: postgresql+psycopg://cognuance_app:${APP_DB_PASSWORD:?}@db:5432/${POSTGRES_DB:?}
+  JWT_SECRET: ${JWT_SECRET:?}
+  JWT_ISSUER: ${JWT_ISSUER:-cognuance-api}
+  JWT_AUDIENCE: ${JWT_AUDIENCE:-cognuance-web}
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  CORS_ORIGINS: "[]" # same-origin through Caddy; no cross-origin access
+  ML_DEVICE: cpu
+  MODEL_MODE: ${MODEL_MODE:-gru}
+  MODEL_ARTIFACT_DIR: /artifacts
+  SYNTHETIC_DATA_DIR: /data/synthetic
+  SEQUENCE_LENGTH: "6"
+  LOG_LEVEL: INFO
+  # Only the web container may set X-Forwarded-For (it overwrites any client-supplied value).
+  FORWARDED_ALLOW_IPS: 172.29.231.10
+
+services:
+  db:
+    image: postgres:17.11@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?}
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres-init:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    image: cognuance-api:${RELEASE:?}
+    profiles: [tools]
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *api-env
+      DATABASE_URL: postgresql+psycopg://cognuance_owner:${MIGRATOR_DB_PASSWORD:?}@db:5432/${POSTGRES_DB:?}
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal]
+    restart: "no"
+
+  ops:
+    # Deliberate operator commands (seed with --hosted-demo, register/activate model, showcase
+    # import/verify, recover_analyses). Writable artifact/data workspaces live here, not in `api`.
+    image: cognuance-api:${RELEASE:?}
+    profiles: [tools]
+    environment:
+      <<: *api-env
+      DEMO_ACCOUNT_PASSWORD: ${DEMO_ACCOUNT_PASSWORD:?}
+    volumes:
+      - ${ARTIFACT_ROOT:?}:/artifacts
+      - ${DATA_ROOT:?}:/data
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal]
+    restart: "no"
+
+  api:
+    image: cognuance-api:${RELEASE:?}
+    environment: *api-env
+    volumes:
+      - ${ARTIFACT_ROOT:?}:/artifacts:ro
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
+    restart: unless-stopped
+
+  web:
+    image: cognuance-web:${RELEASE:?}
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+    ports:
+      - "${WEB_HTTP_PUBLISH:-80}:80"
+      - "${WEB_HTTPS_PUBLISH:-443}:443"
+    volumes:
+      - ${CADDYFILE:-./deploy/Caddyfile}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api: { condition: service_healthy }
+    networks:
+      internal:
+        ipv4_address: 172.29.231.10
+    restart: unless-stopped
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.29.231.0/24
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,21 @@
+# Disposable PostgreSQL for automated tests only (guide 07 §3). Separate Compose project, separate
+# port, dedicated role, tmpfs storage: `down` loses nothing but test data. Never point this at dev.
+#   docker compose -f compose.test.yaml --env-file backend/.env.test up -d --wait
+#   docker compose -f compose.test.yaml --env-file backend/.env.test down
+name: cognuance-test
+services:
+  testdb:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cognuance_test
+      POSTGRES_USER: cognuance_test
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:?Set TEST_POSTGRES_PASSWORD in backend/.env.test}
+    ports:
+      - "127.0.0.1:${TEST_POSTGRES_PORT:-55432}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cognuance_test -d cognuance_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
